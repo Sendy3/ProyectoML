@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #Carga de librerias
 
 ```{r}
+library(readr)
+
 
 ```
 
@@ -19,6 +21,32 @@ knitr::opts_chunk$set(echo = TRUE)
 #Carga de datos
 
 ```{r}
+
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types = cols(
+  HeartDiseaseorAttack = col_double(),
+  Smoker = col_double(),
+  Veggies = col_double(),
+  MentHlth = col_double(),
+  Education = col_double(),
+  HighBP = col_double(),
+  Stroke = col_double(),
+  HvyAlcoholConsump = col_double(),
+  PhysHlth = col_double(),
+  Income = col_double(),
+  HighChol = col_double(),
+  Diabetes = col_double(),
+  AnyHealthcare = col_double(),
+  DiffWalk = col_double(),
+  CholCheck = col_double(),
+  PhysActivity = col_double(),
+  NoDocbcCost = col_double(),
+  Sex = col_double(),
+  BMI = col_double(),
+  Fruits = col_double(),
+  GenHlth = col_double(),
+  Age = col_double()
+))
+
 
 ```
 
