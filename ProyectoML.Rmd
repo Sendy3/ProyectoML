@@ -114,6 +114,32 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 data$Age <- factor(data$Age,                                   
                    levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
                    labels= c("Age 18 to 24", "Age 25 to 29", "Age 30 to 34", "Age 35 to 39", "Age 40 to 44", "Age 45 to 49", "Age 50 to 54", "Age 55 to 59", "Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "Age 75 to 79", "Age 80 or older"))
+
+#Cambiamos el nombre a español
+
+datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+                         Fumador = Smoker,
+                         Verduras = Veggies,
+                         Salud_Mental = MentHlth,
+                         Educacion = Education,
+                         Presion_Sanginea_Alta = HighBP,
+                         Ataque = Stroke,
+                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
+                                                               #mujer + 7 bebidas alcholicas/semana
+                         Salud_Fisica = PhysHlth,
+                         Ingreso = Income,
+                         Colesterol_Alto = HighChol,
+                         Cuidado_Salud = AnyHealthcare,
+                         Dificultad_Andar = DiffWalk,
+                         Control_Colesterol = CholCheck,
+                         Actividad_Fisica = PhysActivity,
+                         No_Doctor_Caro = NoDocbcCost,
+                         Sexo = Sex,
+                         IMC = BMI,
+                         Frutas = Fruits,
+                         Salud_General = GenHlth,
+                         Edad = Age) # 13 categorias de edad
+
 ```
 
 
@@ -122,16 +148,16 @@ Para empezar a trabajar con nuestros datos, vamos a dividirlos en test y train. 
 
 ```{r}
 set.seed(12345)
-seleccion <- sample(nrow(data),round(nrow(data)/2))
-entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
-test <- data[-seleccion,]                  # Conjunto de validación
+seleccion <- sample(nrow(datos),round(nrow(datos)/2))
+entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
+test <- datos[-seleccion,]                  # Conjunto de validación
 ```
 
 
 
 ```{r}
-lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
-summary(lm_data)
+lm_datos <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
+summary(lm_datos)
 ```
 
 Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: HighBP + HighChol + BMI + Smoker + Stroke + Diabetes + HvyAlcoholConsump + NoDocbcCost + GenHlth + PhysHlth + DiffWalk + Sex +  Income.
@@ -139,12 +165,13 @@ Y en menor medida tambien afecta a nuestra variable respuesta: CholCheck + Fruit
 
 Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
 ```{r}
-data2 <- data[-20] #Quitamos la variable Age porque es factor
+data2 <- datos[-20] #Quitamos la variable Age porque es factor
 cor(data2)
 ```
 Dadas las cifras observadas en la columna de HeartDiseaseorAttack, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: HighBP + HighChol +  Smoker + Stroke + Diabetes +  GenHlth + PhysHlth + DiffWalk +  Income.
 
 Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
+
 
 
 
