@@ -156,19 +156,20 @@ test <- datos[-seleccion,]                  # Conjunto de validación
 
 
 ```{r}
-lm_datos <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
+lm_datos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
 summary(lm_datos)
 ```
 
-Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: HighBP + HighChol + BMI + Smoker + Stroke + Diabetes + HvyAlcoholConsump + NoDocbcCost + GenHlth + PhysHlth + DiffWalk + Sex +  Income.
-Y en menor medida tambien afecta a nuestra variable respuesta: CholCheck + Fruits + AnyHealthcare.
+Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
+
+Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud
 
 Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
 ```{r}
 data2 <- datos[-20] #Quitamos la variable Age porque es factor
 cor(data2)
 ```
-Dadas las cifras observadas en la columna de HeartDiseaseorAttack, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: HighBP + HighChol +  Smoker + Stroke + Diabetes +  GenHlth + PhysHlth + DiffWalk +  Income.
+Dadas las cifras observadas en la columna de Enfermedad_Cardiaca_Ataque, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso.
 
 Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
 
