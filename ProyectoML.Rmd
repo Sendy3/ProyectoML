@@ -111,6 +111,11 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 
 
 
+```{r}
+#
+lm_data <- lm("Heart Disease or Attack" ~ ., data=data)
+coef(lm_data)
+```
 
 
 
