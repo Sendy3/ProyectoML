@@ -67,7 +67,7 @@ search()
 
 
 
-# 1. Introducción del trabajo
+## 1. Introducción del trabajo
 
 El objetivo de este trabajo es analizar los datos recogidos por 
 
@@ -75,7 +75,7 @@ El objetivo de este trabajo es analizar los datos recogidos por
 
 
 
-#Carga de datos
+# 1.1. Carga de datos
 
 ```{r}
 
@@ -108,7 +108,7 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 ```
 
 
-# Transformación de datos
+# 1.2.Transformación de datos
 
 En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
 verdad se corresponden con una variable factor donde se representan los grupos 
