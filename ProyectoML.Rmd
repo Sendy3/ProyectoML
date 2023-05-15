@@ -188,7 +188,30 @@ summary(ajuste)
 
 Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
 
-Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud
+Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud.
+
+# COMPROBACIÓN ERROR CUADRÁTICO MEDIO
+
+
+```{r}
+(ecm_ajuste <- mean(ajuste$residuals^2)) #  Error Cuadrático Medio de ajuste
+
+```
+
+La bondad del ajuste de modelo nos  indica que en promedio, los  residuos al 
+cuadrado tienen una  discrepancia de 0.071 unidades.
+
+Esto nos indica que el modelo no  ajusta perfectamente los datos y hay una
+cierta cantidad de variabilidad no explicada por el modelo.
+
+```{r}
+prediccion <- predict(ajuste,test)
+(ecm <- mean((test$HeartDiseaseorAttack-prediccion)^2)) # Error Cuadrático Medio de predicción
+```
+Con esto comprobamos que el error de predicción es mayor que el ajustado y que
+son casi igual de buenos uno que otro.
+
+#CORRELACIÓN 
 
 Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
 ```{r}
