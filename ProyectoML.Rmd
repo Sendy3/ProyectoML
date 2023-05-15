@@ -104,34 +104,87 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
   Age = col_double()
 ))
 
+```
+
+
+```{r}
+# Cambiar los nombres a las variables a Español para entenderlas :)
+datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+                         Fumador = Smoker,
+                         Verduras = Veggies,
+                         Salud_Mental = MentHlth,
+                         Educacion = Education,
+                         Presion_Sanginea_Alta = HighBP,
+                         Ataque = Stroke,
+                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
+                                                               #mujer + 7 bebidas alcholicas/semana
+                         Salud_Fisica = PhysHlth,
+                         Ingreso = Income,
+                         Colesterol_Alto = HighChol,
+                         Cuidado_Salud = AnyHealthcare,
+                         Dificultad_Andar = DiffWalk,
+                         Control_Colesterol = CholCheck,
+                         Actividad_Fisica = PhysActivity,
+                         No_Doctor_Caro = NoDocbcCost,
+                         Sexo = Sex, # mujer 0, hombre 1
+                         IMC = BMI,
+                         Frutas = Fruits,
+                         Salud_General = GenHlth,
+                         Edad = Age) # 14 categorias de edad
+```
+
+
+```{r}
+# vemos si tiene que ver tener un ataque cardiaco con el índice de masa corporal
+# El ajuste mínimos cuadrados de esos datos es:
+lm_todos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=datos)
+plot(datos$IMC, datos$Enfermedad_Cardiaca_Ataque, col='BLUE', xlab='IMC', ylab='Enfermedad Cardiaca')
+abline(coef=coef(lm_todos), col='RED')
+
+# Seleccionamos a los hombres
+hombres <- subset(datos, Sexo==1)
+# El ajuste mínimos cuadrados de esos datos es:
+lm_hombres <- lm(Enfermedad_Cardiaca_Ataque ~ IMC, data=hombres)
+
+# Seleccionamos a las mujeres
+mujeres <- subset(datos, Sexo==0)
+# El ajuste mínimos cuadrados de esos datos es:
+lm_mujeres <- lm(Enfermedad_Cardiaca_Ataque ~ IMC, data=mujeres)
+
+plot(datos$IMC, datos$Enfermedad_Cardiaca_Ataque, col='BLUE', xlab='IMC', ylab='Enfermedad Cardiaca')
+abline(coef=coef(lm_todos), col='deeppink3',  lwd = 2)
+abline(coef=coef(lm_hombres), col='BLUE',  lwd = 2)
+abline(coef=coef(lm_mujeres), col='RED',  lwd = 2)
+points(mujeres$IMC,mujeres$Enfermedad_Cardiaca_Ataque,col='RED')
+legend(x = "topright", legend = c("todos", "hombres", "mujeres"), fill = c("deeppink3","BLUE", "RED"))
 
 ```
+
+
 
 
 
 ```{r}
 set.seed(12345)
-seleccion <- sample(nrow(data),round(nrow(data)/2))
-entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
-test <- data[-seleccion,]                  # Conjunto de validación
+seleccion <- sample(nrow(datos),round(nrow(datos)/2))
+entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
+test <- datos[-seleccion,]                  # Conjunto de validación
 ```
-
 
 
 
 ```{r}
 #
-lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
-summary(lm_data)
+lm_datos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
+summary(lm_datos)
 ```
 
 
 
 ```{r}
-#skfskjfhes
-#sfmdfnmsbfjse
-#nsdfmsbfmns
+
 ```
+
 
 
 
