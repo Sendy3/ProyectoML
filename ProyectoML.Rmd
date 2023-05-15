@@ -109,13 +109,23 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 
 
 
+```{r}
+set.seed(12345)
+seleccion <- sample(nrow(data),round(nrow(data)/2))
+entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
+test <- data[-seleccion,]                  # Conjunto de validación
+```
+
+
 
 
 ```{r}
 #
-lm_data <- lm("Heart Disease or Attack" ~ ., data=data)
+lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
 coef(lm_data)
+summary(lm_data)
 ```
+
 
 
 
