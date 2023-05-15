@@ -225,58 +225,11 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 
 
 
-
-#COSAS DE LA PX 7
-
-Antes de aplicar Ridge Regression, debemos explorar qué valores de $\lambda$ pudieran ser los mejores. Para ello suele utilizarse validación cruzada.
+# ALTERNATIVA:
 
 ```{r}
-library(glmnet)
-lambdas <- 10^seq(5,-5,length=100) # desde 10^-5 hasta 10^5, lo que hace que la mitad de la secuencia 
-set.seed(12345)
-cv.meat <- cv.glmnet(ajuste,entrenamiento$Enfermedad_Cardiaca_Ataque,lambda=lambdas)#se cogen muchos train y test de manera automatica con cv. cros validacion para cada uno de los lamndas
-```
-
-
-```{r}
-library(pls)
-plsr.ajuste.cv <- plsr(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento, scale=TRUE, validation ="CV") #para decirnos cuantas componenetes rincipales podrian ser las indicadas
-summary(plsr.ajuste.cv)
-
-validationplot(plsr.ajuste.cv, val.type="MSEP")  # Gráfica de ECM
-
-library(pls)
-plsrmse <- MSEP(plsr.ajuste.cv)
-
 
 ```
-
-
-```{r}
-plsrmse$val[1,1,1:30]
-```
-```{r}
-pcr.ajuste.final <- pcr(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento, scale=TRUE, ncomp =3)
-summary(pcr.ajuste.final)
-```
-```{r}
-predict(pcr.ajuste.final, newdata=test, ncomp =3)
-```
-
-
-
-
-#CORRELACIÓN 
-
-Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
-```{r}
-data2 <- datos[-20] #Quitamos la variable Age porque es factor
-cor(data2)
-```
-Dadas las cifras observadas en la columna de Enfermedad_Cardiaca_Ataque, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso.
-
-Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
-
 
 
 
