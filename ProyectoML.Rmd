@@ -173,7 +173,19 @@ Dadas las cifras observadas en la columna de Enfermedad_Cardiaca_Ataque, las var
 
 Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
 
+Por tanto, vamos a elegir las que coinciden en la correlacion y en el summary anterior:
 
+
+```{r}
+ajuste_bueno <- lm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso, data=entrenamiento)
+summary(ajuste_bueno)
+```
+En este caso podemos ver que la formula de regresion quedaria tal que:
+
+Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
+
+
+El porcentage de variabilidad que queda explicada en las otras dos variables es 1 - 0.1284 = 0.8716
 
 
 
