@@ -127,6 +127,11 @@ summary(lm_data)
 
 
 
+```{r}
+#skfskjfhes
+#sfmdfnmsbfjse
+#nsdfmsbfmns
+```
 
 
 
