@@ -78,10 +78,7 @@ El objetivo de este trabajo es analizar los datos recogidos por
 # 1.1. Carga de datos
 
 ```{r}
-
 data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
-
-
 ```
 
 
@@ -97,6 +94,10 @@ data$Age <- factor(data$Age,
                    levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
                    labels= c("Edad 18 hasta 24", "Edad 25 hasta 29", "Edad 30 hasta 34", "Edad 35 hasta 39", "Edad 40 hasta 44", "Edad 45 hasta 49", "Edad 50 hasta 54", "Edad 55 hasta 59", "Edad 60 hasta 64", "Edad 65 hasta 69", "Edad 70 hasta 74", "Edad 75 hasta 79", "Edad 80 o mas"))
 
+data$Diabetes <- as.factor(data$Diabetes)
+data$GenHlth <- as.factor(data$GenHlth)
+data$Education <- as.factor(data$Education)
+data$Income <- as.factor(data$Income)
 
 
 datos <- data %>% 
@@ -136,7 +137,6 @@ Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y 
 set.seed(12345)
 
 # Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
-
 porcentaje_entrenamiento <- 0.7
 
 # Obtenemos el número de observaciones para el entrenamiento
@@ -144,71 +144,66 @@ observaciones <- round(porcentaje_entrenamiento * nrow(data))
 
 seleccion <- sample(nrow(data), observaciones)
 entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
-test <- datos[-seleccion,]                   # Conjunto de validación
+test <- datos[-seleccion,]                  # Conjunto de validación
 ```
 
-Lo primero que haremos será comprobar la capacidad de predicción del 
-modelo lineal.
+Lo primero que haremos será comprobar la capacidad de predicción del modelo lineal.
 
-Como variable respuesta tenemos: HeartDiseaseorAttack
+Como variable respuesta tenemos: Enfermedad_Cardiaca_Ataque
 
 Ya que nos interesa saber de que depende este evento, por ello usamos 
 el resto de variables como predictoras. Estimamos los modelos usando el conjunto de datos del banco de entrenamiento.
 
 
 ```{r}
-#
-ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial", data=entrenamiento)
-summary(ajuste)
+ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenamiento)
+```
+Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
+
+```{r}
+step(ajuste)
 ```
 
 
-
-Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + Control_Colesterol + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General +  Dificultad_Andar + Sexo + Ingreso + Edad.
-
-Y en menor medida tambien afecta a nuestra variable respuesta: Salud_Mental + Actividad_fisica
-
-# COMPROBACIÓN ERROR CUADRÁTICO MEDIO
-
-
 ```{r}
-(ecm_ajuste <- mean(ajuste$residuals^2)) #  Error Cuadrático Medio de ajuste
-
-```
-
-La bondad del ajuste de modelo nos  indica que en promedio, los  residuos al 
-cuadrado tienen una  discrepancia de 0.071 unidades.
-
-Esto nos indica que el modelo no  ajusta perfectamente los datos y hay una
-cierta cantidad de variabilidad no explicada por el modelo.
-
-```{r}
-prediccion <- predict(ajuste,test)
-(ecm <- mean((test$Enfermedad_Cardiaca_Ataque-prediccion)^2)) # Error Cuadrático Medio de predicción
-```
-Con esto comprobamos que el error de predicción es mayor que el ajustado y que
-son casi igual de buenos uno que otro.
-
-#CORRELACIÓN 
-
-Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
-```{r}
-data2 <- datos[-20] #Quitamos la variable Age porque es factor
-cor(data2)
-```
-Dadas las cifras observadas en la columna de Enfermedad_Cardiaca_Ataque, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso.
-
-Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
-
-Por tanto, vamos a elegir las que coinciden en la correlacion y en el summary anterior:
-
-```{r}
-ajuste_bueno <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso, data=entrenamiento)
+ajuste_bueno <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + 
+    Control_Colesterol + Fumador + Ataque + Diabetes + Actividad_Fisica + 
+    Verduras + Consumo_Alcohol + No_Doctor_Caro + Salud_General + 
+    Salud_Mental + Dificultad_Andar + Sexo + Edad + Educacion + 
+    Ingreso, family = "binomial", data = entrenamiento)
 summary(ajuste_bueno)
 ```
+
 En este caso podemos ver que la formula de regresion quedaria tal que:
 
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
 
+
+
+```{r}
+prediccion <- predict(ajuste_bueno,test)
+```
+
+
+# CURVA ROC
+
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
+par.roc
+plot(par.roc)
+
+
+
+```
+
+
+```{r}
+library(ResourceSelection)
+hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_bueno), g = 8)
+```
+
+Como podemos observar en el resultado del test, tenemos un p-valor muy pequeño(p-valor = 2.2e-16), con lo que podemos concluir que  rechazamos nuestra hipotesis nula lo cual significaria que los datos no se ajustan al modelo.
+El problema es la asumcion de probabilidad incremental en forma de inversa logistica. Nuestras variables parecen que no se relacionan linealmente con el logit de la probabilidad. 
 
