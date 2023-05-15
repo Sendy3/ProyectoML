@@ -1,0 +1,132 @@
+---
+title: "Indicadores de salud para el corazón."
+subtitle: "Modelos lineales. Grado en Ciencia de Datos- UV"
+author: "Gema Bravo Aguilera, Sandra Paniagua Sanchez, Wilson Paul Portillo Barriga."
+date:  "`r Sys.Date()`"  
+params:
+  lang: ES
+lang: "`r switch(params$lang, ES = 'es-ES', EN = 'en-US')`"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+```{r setup, cache = F,  message = F, warning = F, tidy = F, include=FALSE}
+# CONFIGURACIÓN GENERAL
+library(knitr)
+options(width = 100)
+
+opts_chunk$set(echo=F, message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 200, tidy = F, cache.path = '.cache/', fig.path = './figura/')
+
+knit_hooks$set(inline = function(x) {
+  
+  if(is.numeric(x)) {
+    round(x, getOption('digits'))
+  } else {
+    paste(as.character(x), collapse = ', ')
+  }
+})
+
+```
+
+```{r, echo = FALSE, include=FALSE}
+
+# Especificamos las librerías necesarias en esta lista
+
+packages = c("tidyverse","knitr", "lubridate", "readr", "dplyr", "forcats", "lubridate", "magrittr", "stringr", "tibble", "tidyr", "datasets", "RColorBrewer","nycflights13", "base", "datasets", "ggplot2", "plotly", "highcharter")
+
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE,repos='http://cran.rediris.es')
+  }
+  library(x, character.only = TRUE)
+})
+
+search()
+
+```
+
+\bigskip
+
+\bigskip
+
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+
+\bigskip
+
+\tableofcontents
+
+\bigskip
+
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+
+
+\newpage
+
+
+
+# 1. Introducción del trabajo
+
+El objetivo de este trabajo es analizar los datos recogidos por 
+
+
+
+
+
+#Carga de datos
+
+```{r}
+
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types = cols(
+  HeartDiseaseorAttack = col_double(),
+  Smoker = col_double(),
+  Veggies = col_double(),
+  MentHlth = col_double(),
+  Education = col_double(),
+  HighBP = col_double(),
+  Stroke = col_double(),
+  HvyAlcoholConsump = col_double(),
+  PhysHlth = col_double(),
+  Income = col_double(),
+  HighChol = col_double(),
+  Diabetes = col_double(),
+  AnyHealthcare = col_double(),
+  DiffWalk = col_double(),
+  CholCheck = col_double(),
+  PhysActivity = col_double(),
+  NoDocbcCost = col_double(),
+  Sex = col_double(),
+  BMI = col_double(),
+  Fruits = col_double(),
+  GenHlth = col_double(),
+  Age = col_double()
+))
+
+
+```
+
+
+
+```{r}
+set.seed(12345)
+seleccion <- sample(nrow(data),round(nrow(data)/2))
+entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
+test <- data[-seleccion,]                  # Conjunto de validación
+```
+
+
+
+
+```{r}
+#
+lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
+summary(lm_data)
+```
+
+
+
+
+
+
