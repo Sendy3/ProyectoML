@@ -67,7 +67,7 @@ search()
 
 
 
-# 1. Introducción del trabajo
+## 1. Introducción del trabajo
 
 El objetivo de este trabajo es analizar los datos recogidos por 
 
@@ -75,49 +75,32 @@ El objetivo de este trabajo es analizar los datos recogidos por
 
 
 
-#Carga de datos
+# 1.1. Carga de datos
 
 ```{r}
 
-data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types = cols(
-  HeartDiseaseorAttack = col_double(),
-  Smoker = col_double(),
-  Veggies = col_double(),
-  MentHlth = col_double(),
-  Education = col_double(),
-  HighBP = col_double(),
-  Stroke = col_double(),
-  HvyAlcoholConsump = col_double(),
-  PhysHlth = col_double(),
-  Income = col_double(),
-  HighChol = col_double(),
-  Diabetes = col_double(),
-  AnyHealthcare = col_double(),
-  DiffWalk = col_double(),
-  CholCheck = col_double(),
-  PhysActivity = col_double(),
-  NoDocbcCost = col_double(),
-  Sex = col_double(),
-  BMI = col_double(),
-  Fruits = col_double(),
-  GenHlth = col_double(),
-  Age = col_double()
-))
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
 
 
 ```
 
 
-##Limpieza y transformación de datos
+# 1.2.Transformación de datos
+
+En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
+verdad se corresponden con una variable factor donde se representan los grupos 
+de edad. 
+
 ```{r}
-#Pasamos a factor Age
+
 data$Age <- factor(data$Age,                                   
                    levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
-                   labels= c("Age 18 to 24", "Age 25 to 29", "Age 30 to 34", "Age 35 to 39", "Age 40 to 44", "Age 45 to 49", "Age 50 to 54", "Age 55 to 59", "Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "Age 75 to 79", "Age 80 or older"))
+                   labels= c("Edad 18 hasta 24", "Edad 25 hasta 29", "Edad 30 hasta 34", "Edad 35 hasta 39", "Edad 40 hasta 44", "Edad 45 hasta 49", "Edad 50 hasta 54", "Edad 55 hasta 59", "Edad 60 hasta 64", "Edad 65 hasta 69", "Edad 70 hasta 74", "Edad 75 hasta 79", "Edad 80 o mas"))
 
-#Cambiamos el nombre a español
 
-datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+
+datos <- data %>% 
+  rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
                          Fumador = Smoker,
                          Verduras = Veggies,
                          Salud_Mental = MentHlth,
@@ -144,25 +127,68 @@ datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
 
 
 
-Para empezar a trabajar con nuestros datos, vamos a dividirlos en test y train. Y generaremos nuestro modelo a partir de los datos almacenados en la variable train y lo comprobaremos con los datos almacenados en la variable test.
+# 2. Validación para medir la predictividad del modelo
+
+Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y entrenamiento. Y generaremos nuestro modelo a partir de los datos almacenados en la variable entrenamiento y lo comprobaremos con los datos almacenados en la variable test.
 
 ```{r}
+
 set.seed(12345)
-seleccion <- sample(nrow(datos),round(nrow(datos)/2))
+
+# Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
+
+porcentaje_entrenamiento <- 0.7
+
+# Obtenemos el número de observaciones para el entrenamiento
+observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
+
+seleccion <- sample(nrow(data), observaciones)
 entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
-test <- datos[-seleccion,]                  # Conjunto de validación
+test <- datos[-seleccion,]                   # Conjunto de validación
 ```
 
+Lo primero que haremos será comprobar la capacidad de predicción del 
+modelo lineal.
+
+Como variable respuesta tenemos: HeartDiseaseorAttack
+
+Ya que nos interesa saber de que depende este evento, por ello usamos 
+el resto de variables como predictoras. Estimamos los modelos usando el conjunto de datos del banco de entrenamiento.
 
 
 ```{r}
-lm_datos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
-summary(lm_datos)
+#
+ajuste <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
+summary(ajuste)
 ```
+
 
 Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
 
-Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud
+Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud.
+
+# COMPROBACIÓN ERROR CUADRÁTICO MEDIO
+
+
+```{r}
+(ecm_ajuste <- mean(ajuste$residuals^2)) #  Error Cuadrático Medio de ajuste
+
+```
+
+La bondad del ajuste de modelo nos  indica que en promedio, los  residuos al 
+cuadrado tienen una  discrepancia de 0.071 unidades.
+
+Esto nos indica que el modelo no  ajusta perfectamente los datos y hay una
+cierta cantidad de variabilidad no explicada por el modelo.
+
+```{r}
+prediccion <- predict(ajuste,test)
+(ecm <- mean((test$Enfermedad_Cardiaca_Ataque-prediccion)^2)) # Error Cuadrático Medio de predicción
+```
+Con esto comprobamos que el error de predicción es mayor que el ajustado y que
+son casi igual de buenos uno que otro.
+
+#CORRELACIÓN 
 
 Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
 ```{r}
@@ -175,7 +201,6 @@ Como podemos observar, la mayoria de las variables que anteriormente habiamos se
 
 Por tanto, vamos a elegir las que coinciden en la correlacion y en el summary anterior:
 
-
 ```{r}
 ajuste_bueno <- lm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso, data=entrenamiento)
 summary(ajuste_bueno)
@@ -185,7 +210,7 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
 
-El porcentage de variabilidad que queda explicada en las otras dos variables es 1 - 0.1284 = 0.8716
+El porcentage de variabilidad que queda explicada en las otras variables es 0.1284 
 
 ```{r}
 plot(ajuste_bueno)
