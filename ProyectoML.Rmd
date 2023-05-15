@@ -187,6 +187,9 @@ Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + 
 
 El porcentage de variabilidad que queda explicada en las otras dos variables es 1 - 0.1284 = 0.8716
 
+```{r}
+plot(ajuste_bueno)
+```
 
 
 
