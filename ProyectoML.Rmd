@@ -105,24 +105,82 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 ))
 
 
+datos <- data %>% 
+  rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+                         Fumador = Smoker,
+                         Verduras = Veggies,
+                         Salud_Mental = MentHlth,
+                         Educacion = Education,
+                         Presion_Sanginea_Alta = HighBP,
+                         Ataque = Stroke,
+                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
+                                                               #mujer + 7 bebidas alcholicas/semana
+                         Salud_Fisica = PhysHlth,
+                         Ingreso = Income,
+                         Colesterol_Alto = HighChol,
+                         Cuidado_Salud = AnyHealthcare,
+                         Dificultad_Andar = DiffWalk,
+                         Control_Colesterol = CholCheck,
+                         Actividad_Fisica = PhysActivity,
+                         No_Doctor_Caro = NoDocbcCost,
+                         Sexo = Sex,
+                         IMC = BMI,
+                         Frutas = Fruits,
+                         Salud_General = GenHlth,
+                         Edad = Age) # 13 categorias de edad
+
 ```
 
 
+# Transformación de datos
+
+En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
+verdad se corresponden con una variable factor donde se representan los grupos 
+de edad. 
 
 ```{r}
-set.seed(12345)
-seleccion <- sample(nrow(data),round(nrow(data)/2))
-entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
-test <- data[-seleccion,]                  # Conjunto de validación
+
+data$Age <- factor(data$Age,                                   
+                   levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
+                   labels= c("Age 18 to 24", "Age 25 to 29", "Age 30 to 34", "Age 35 to 39", "Age 40 to 44", "Age 45 to 49", "Age 50 to 54", "Age 55 to 59", "Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "Age 75 to 79", "Age 80 or older"))
+
 ```
 
 
+
+# 2. Validación para medir la predictividad del modelo
+
+Leemos el banco de datos y construimos los conjuntos de entrenamiento y validación.
+
+```{r}
+
+set.seed(12345)
+
+# Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
+
+porcentaje_entrenamiento <- 0.7
+
+# Obtenemos el número de observaciones para el entrenamiento
+observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
+
+seleccion <- sample(nrow(data), observaciones)
+entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
+test <- data[-seleccion,]                   # Conjunto de validación
+```
+
+Lo primero que haremos será comprobar la capacidad de predicción del 
+modelo lineal.
+
+Como variable respuesta tenemos: HeartDiseaseorAttack
+
+Ya que nos interesa saber de que depende este evento, por ello usamos 
+el resto de variables como predictoras. Estimamos los modelos usando el conjunto de datos del banco de entrenamiento.
 
 
 ```{r}
 #
-lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
-summary(lm_data)
+ajuste <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
+summary(ajuste)
 ```
 
 
