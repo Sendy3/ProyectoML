@@ -108,6 +108,15 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 ```
 
 
+##Limpieza y transformación de datos
+```{r}
+#Pasamos a factor Age
+data$Age <- factor(data$Age,                                   
+                   levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
+                   labels= c("Age 18 to 24", "Age 25 to 29", "Age 30 to 34", "Age 35 to 39", "Age 40 to 44", "Age 45 to 49", "Age 50 to 54", "Age 55 to 59", "Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "Age 75 to 79", "Age 80 or older"))
+```
+
+
 
 Para empezar a trabajar con nuestros datos, vamos a dividirlos en test y train. Y generaremos nuestro modelo a partir de los datos almacenados en la variable train y lo comprobaremos con los datos almacenados en la variable test.
 
@@ -128,6 +137,14 @@ summary(lm_data)
 Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: HighBP + HighChol + BMI + Smoker + Stroke + Diabetes + HvyAlcoholConsump + NoDocbcCost + GenHlth + PhysHlth + DiffWalk + Sex +  Income.
 Y en menor medida tambien afecta a nuestra variable respuesta: CholCheck + Fruits + AnyHealthcare.
 
+Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
+```{r}
+data2 <- data[-20] #Quitamos la variable Age porque es factor
+cor(data2)
+```
+Dadas las cifras observadas en la columna de HeartDiseaseorAttack, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: HighBP + HighChol +  Smoker + Stroke + Diabetes +  GenHlth + PhysHlth + DiffWalk +  Income.
+
+Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
 
 
 
