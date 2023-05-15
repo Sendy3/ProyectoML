@@ -122,7 +122,6 @@ test <- data[-seleccion,]                  # Conjunto de validación
 ```{r}
 #
 lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
-coef(lm_data)
 summary(lm_data)
 ```
 
