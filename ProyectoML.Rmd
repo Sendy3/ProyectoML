@@ -184,26 +184,11 @@ summary(ajuste)
 
 
 
-```{r}
-(ecm_ajuste <- mean(ajuste$residuals^2)) #  Error Cuadrático Medio de ajuste
-
-```
 
 
 
-De esa forma hemos podido valorar la bondad de ajuste del modelo utilizando el _error cuadrático medio de ajuste_. Para valorar la bondad de predicción, predecimos los datos del banco de validación, utilizando la estimación de los coeficientes que acabamos de obtener, y calculamos el error cuadrático medio de esas predicciones
 
 
-```{r}
-prediccion <- predict(ajuste,test)
-(ecm <- mean((test$HeartDiseaseorAttack-prediccion)^2)) # Error Cuadrático Medio de predicción
-```
-
-
-
-```{r}
-test$
-```
 
 
 
