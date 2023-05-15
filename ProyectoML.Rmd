@@ -79,30 +79,7 @@ El objetivo de este trabajo es analizar los datos recogidos por
 
 ```{r}
 
-data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types = cols(
-  HeartDiseaseorAttack = col_double(),
-  Smoker = col_double(),
-  Veggies = col_double(),
-  MentHlth = col_double(),
-  Education = col_double(),
-  HighBP = col_double(),
-  Stroke = col_double(),
-  HvyAlcoholConsump = col_double(),
-  PhysHlth = col_double(),
-  Income = col_double(),
-  HighChol = col_double(),
-  Diabetes = col_double(),
-  AnyHealthcare = col_double(),
-  DiffWalk = col_double(),
-  CholCheck = col_double(),
-  PhysActivity = col_double(),
-  NoDocbcCost = col_double(),
-  Sex = col_double(),
-  BMI = col_double(),
-  Fruits = col_double(),
-  GenHlth = col_double(),
-  Age = col_double()
-))
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
 
 
 ```
@@ -206,7 +183,7 @@ cierta cantidad de variabilidad no explicada por el modelo.
 
 ```{r}
 prediccion <- predict(ajuste,test)
-(ecm <- mean((test$HeartDiseaseorAttack-prediccion)^2)) # Error Cuadrático Medio de predicción
+(ecm <- mean((test$Enfermedad_Cardiaca_Ataque-prediccion)^2)) # Error Cuadrático Medio de predicción
 ```
 Con esto comprobamos que el error de predicción es mayor que el ajustado y que
 son casi igual de buenos uno que otro.
@@ -233,6 +210,5 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
 
-El porcentage de variabilidad que queda explicada en las otras dos variables es 1 - 0.1284 = 0.8716
-
+El porcentage de variabilidad que queda explicada en las otras variables es 0.1284 
 
