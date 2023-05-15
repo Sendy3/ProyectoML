@@ -105,6 +105,23 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 ))
 
 
+```
+
+
+# Transformación de datos
+
+En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
+verdad se corresponden con una variable factor donde se representan los grupos 
+de edad. 
+
+```{r}
+
+data$Age <- factor(data$Age,                                   
+                   levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
+                   labels= c("Edad 18 hasta 24", "Edad 25 hasta 29", "Edad 30 hasta 34", "Edad 35 hasta 39", "Edad 40 hasta 44", "Edad 45 hasta 49", "Edad 50 hasta 54", "Edad 55 hasta 59", "Edad 60 hasta 64", "Edad 65 hasta 69", "Edad 70 hasta 74", "Edad 75 hasta 79", "Edad 80 o mas"))
+
+
+
 datos <- data %>% 
   rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
                          Fumador = Smoker,
@@ -132,25 +149,10 @@ datos <- data %>%
 ```
 
 
-# Transformación de datos
-
-En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
-verdad se corresponden con una variable factor donde se representan los grupos 
-de edad. 
-
-```{r}
-
-data$Age <- factor(data$Age,                                   
-                   levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
-                   labels= c("Age 18 to 24", "Age 25 to 29", "Age 30 to 34", "Age 35 to 39", "Age 40 to 44", "Age 45 to 49", "Age 50 to 54", "Age 55 to 59", "Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "Age 75 to 79", "Age 80 or older"))
-
-```
-
-
 
 # 2. Validación para medir la predictividad del modelo
 
-Leemos el banco de datos y construimos los conjuntos de entrenamiento y validación.
+Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y entrenamiento. Y generaremos nuestro modelo a partir de los datos almacenados en la variable entrenamiento y lo comprobaremos con los datos almacenados en la variable test.
 
 ```{r}
 
@@ -164,8 +166,8 @@ porcentaje_entrenamiento <- 0.7
 observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
 
 seleccion <- sample(nrow(data), observaciones)
-entrenamiento <- data[seleccion,]          # Conjunto de entrenamiento
-test <- data[-seleccion,]                   # Conjunto de validación
+entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
+test <- datos[-seleccion,]                   # Conjunto de validación
 ```
 
 Lo primero que haremos será comprobar la capacidad de predicción del 
@@ -179,11 +181,23 @@ el resto de variables como predictoras. Estimamos los modelos usando el conjunto
 
 ```{r}
 #
-ajuste <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
+ajuste <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
 summary(ajuste)
 ```
 
 
+Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
+
+Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud
+
+Vamos a ver que tipo de correlacion tienen las variables con nuestra variable respuesta para confirmar si estas son las variables que realmente nos ayudaran en nuestra predicción:
+```{r}
+data2 <- datos[-20] #Quitamos la variable Age porque es factor
+cor(data2)
+```
+Dadas las cifras observadas en la columna de Enfermedad_Cardiaca_Ataque, las variables que probablemente expliquen mejor esta variable dado que tienen los valores mas altos de correlacion en valor absoluto se corresponden con: Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso.
+
+Como podemos observar, la mayoria de las variables que anteriormente habiamos seleccionado, hemos obtenido que estan directamente correlacionadas. 
 
 
 
