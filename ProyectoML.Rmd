@@ -185,7 +185,6 @@ Y en menor medida tambien afecta a nuestra variable respuesta: Salud_Mental + Ac
 
 # COMPROBACIÓN ERROR CUADRÁTICO MEDIO
 
-
 ```{r}
 (ecm_ajuste <- mean(ajuste$residuals^2)) #  Error Cuadrático Medio de ajuste
 
@@ -225,8 +224,37 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
+```{r}
+step(ajuste)
+```
+
+```{r}
+ajuste_nuevo <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + 
+    Control_Colesterol + Fumador + Ataque + Diabetes + Actividad_Fisica + 
+    Verduras + Consumo_Alcohol + No_Doctor_Caro + Salud_General + 
+    Salud_Mental + Dificultad_Andar + Sexo + Edad + Educacion + 
+    Ingreso, family = "binomial", data = entrenamiento)
+```
 
 
+
+```{r}
+library(ResourceSelection)
+hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste), g = 8)
+```
+
+Como podemos observar en el resultado del test, tenemos un p-valor muy pequeño(p-valor = 2.2e-16), con lo que podemos concluir que  rechazamos nuestra hipotesis nula lo cual significaria que los datos no se ajustan al modelo.
+
+
+
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
+par.roc
+plot(par.roc)
+```
+
+La capacidad de clasifciación de este modelo es alta, porque el area bajo de la curva ROC es 0.8477 con un intervalo de confianza de (-), lo que indica claramente que es un buen modelo.
 
 
 
