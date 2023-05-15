@@ -97,6 +97,22 @@ data$Age <- factor(data$Age,
                    levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
                    labels= c("Edad 18 hasta 24", "Edad 25 hasta 29", "Edad 30 hasta 34", "Edad 35 hasta 39", "Edad 40 hasta 44", "Edad 45 hasta 49", "Edad 50 hasta 54", "Edad 55 hasta 59", "Edad 60 hasta 64", "Edad 65 hasta 69", "Edad 70 hasta 74", "Edad 75 hasta 79", "Edad 80 o mas"))
 
+# data$Smoker <- as.factor(data$Smoker)
+# data$HeartDiseaseorAttack <- as.factor(data$HeartDiseaseorAttack)
+# data$HighBP <- as.factor(data$HighBP)
+# data$HighChol <- as.factor(data$HighChol)
+# data$Stroke <- as.factor(data$Stroke)
+# data$Diabetes <- as.factor(data$Diabetes)
+# data$PhysActivity <- as.factor(data$PhysActivity)
+# data$Fruits <- as.factor(data$Fruits)
+# data$Veggies <- as.factor(data$Smoker)
+# data$HvyAlcoholConsump <- as.factor(data$HvyAlcoholConsump)
+# data$AnyHealthcare <- as.factor(data$AnyHealthcare)
+# data$NoDocbcCost <- as.factor(data$NoDocbcCost)
+# data$DiffWalk <- as.factor(data$DiffWalk)
+# data$Sex <- as.factor(data$Sex)
+
+
 
 
 datos <- data %>% 
@@ -158,14 +174,14 @@ el resto de variables como predictoras. Estimamos los modelos usando el conjunto
 
 ```{r}
 #
-ajuste <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
+ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenamiento)
 summary(ajuste)
 ```
 
 
-Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
+Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + Control_Colesterol + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General +  Dificultad_Andar + Sexo + Ingreso + Edad.
 
-Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud.
+Y en menor medida tambien afecta a nuestra variable respuesta: Salud_Mental + Actividad_fisica
 
 # COMPROBACIÓN ERROR CUADRÁTICO MEDIO
 
@@ -202,7 +218,7 @@ Como podemos observar, la mayoria de las variables que anteriormente habiamos se
 Por tanto, vamos a elegir las que coinciden en la correlacion y en el summary anterior:
 
 ```{r}
-ajuste_bueno <- lm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso, data=entrenamiento)
+ajuste_bueno <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto +  Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar +  Ingreso, family = "binomial", data=entrenamiento)
 summary(ajuste_bueno)
 ```
 En este caso podemos ver que la formula de regresion quedaria tal que:
@@ -210,11 +226,7 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
 
-El porcentage de variabilidad que queda explicada en las otras variables es 0.1284 
 
-```{r}
-plot(ajuste_bueno)
-```
 
 
 
