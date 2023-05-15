@@ -163,9 +163,10 @@ summary(ajuste)
 ```
 
 
-Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Ingreso + Age ("Age 60 to 64", "Age 65 to 69", "Age 70 to 74", "EdadAge 75 to 79", "Age 80 or older").
 
-Y en menor medida tambien afecta a nuestra variable respuesta: Control_Colesterol + Frutas + Cuidado_Salud.
+Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: Presion_Sanginea_Alta + Colesterol_Alto + Control_Colesterol + Fumador + Ataque + Diabetes + Consumo_Alcohol + No_Doctor_Caro + Salud_General +  Dificultad_Andar + Sexo + Ingreso + Edad.
+
+Y en menor medida tambien afecta a nuestra variable respuesta: Salud_Mental + Actividad_fisica
 
 # COMPROBACIÓN ERROR CUADRÁTICO MEDIO
 
