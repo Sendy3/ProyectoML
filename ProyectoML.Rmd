@@ -109,6 +109,8 @@ data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types
 
 
 
+Para empezar a trabajar con nuestros datos, vamos a dividirlos en test y train. Y generaremos nuestro modelo a partir de los datos almacenados en la variable train y lo comprobaremos con los datos almacenados en la variable test.
+
 ```{r}
 set.seed(12345)
 seleccion <- sample(nrow(data),round(nrow(data)/2))
@@ -118,12 +120,13 @@ test <- data[-seleccion,]                  # Conjunto de validación
 
 
 
-
 ```{r}
-#
 lm_data <- lm(HeartDiseaseorAttack ~ ., data=entrenamiento)
 summary(lm_data)
 ```
+
+Segun este resultado, vemos que existen varias variables que son importantes para predecir nuestra variable respuesta. Observamos que las variables en cuestion son: HighBP + HighChol + BMI + Smoker + Stroke + Diabetes + HvyAlcoholConsump + NoDocbcCost + GenHlth + PhysHlth + DiffWalk + Sex +  Income.
+Y en menor medida tambien afecta a nuestra variable respuesta: CholCheck + Fruits + AnyHealthcare.
 
 
 
