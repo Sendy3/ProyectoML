@@ -227,11 +227,34 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 
 # ALTERNATIVA:
 
-```{r}
+Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades.
 
+
+
+
+```{r}
+library(glmnet)
+x <- model.matrix(Enfermedad_Cardiaca_Ataque ~ .,entrenamiento)
+y <- entrenamiento$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
 ```
 
 
+```{r}
+lambdas <- 10^seq(5,-5,length=100)
+set.seed(12345)
+cv.lasso <- cv.glmnet(x,y,alpha=1,lambda=lambdas)
+plot(cv.lasso)
+min(cv.lasso$cvm) #Mínimo error cuadrático medio de predicción
+cv.lasso$lambda.min  # Alcanza el mínimo ECM
+cv.lasso$lambda.1se  # Regla de un error estándar
+```
 
+
+Utilizando $\lambda =$ `r round(cv.lasso$lambda.1se,3)`, el error de predicción es:
+```{r}
+lasso.lambda1st <- glmnet(x,y,alpha=1,lambda=round(cv.lasso$lambda.1se,3))
+pred.lasso.lambda1st <- predict(lasso.lambda1st,s=round(cv.lasso$lambda.1se,3),newx=x)
+mean((pred.lasso.lambda1st-y)^2)
+```
 
 
