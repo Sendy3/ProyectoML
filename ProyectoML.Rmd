@@ -188,8 +188,28 @@ plot(ajuste_bueno)
 
 ### Predicción
 
+
 ```{r}
-prediccion <- predict(ajuste_bueno,test)
+prediccion <- predict(ajuste_bueno,test, type = "response")
+
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[prediccion > 0.5] <- "1_Correct"
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen,'   Specifity: ',spe)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+
 ```
 
 
@@ -198,9 +218,19 @@ prediccion <- predict(ajuste_bueno,test)
 ```{r}
 library(pROC)
 par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
-par.roc
-plot(par.roc)
 
+
+#La dibujamos
+yi<-coords(par.roc, "best")
+par(pty="s")
+plot(par.roc,xlim=c(1,0))
+points(spe,sen,col='blue')
+text(spe,sen,'p=0.5',col='blue',pos=4)
+text(spe,sen,'p=0.5',col='blue',pos=4)
+points(yi[2],yi[3],col='red')
+text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
+text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
+text(0,0,paste('95% CI:',round(ci(par.roc)[1],3),'-',round(ci(par.roc)[3],3)),pos=2)
 
 
 ```
