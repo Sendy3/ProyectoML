@@ -184,30 +184,20 @@ library(ResourceSelection)
 hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_bueno), g = 8)
 ```
 
+Nos da estos valores porque seguramente hayan variables que no se relacionen de forma lineal. 
+
+Haya alguna variable o variables que no se relacionan de forma lineal con la inversa logit de la probabilidad. Es decir, que haya alguna variable o variables que tienen un punto en el q minimiza o maximiza la probabilidad y cuando se alejan de ese punto, esa probabilidad crece o decrece.
+
+
 Como podemos observar en el resultado del test, tenemos un p-valor muy pequeño(p-valor = 2.2e-16), con lo que podemos concluir que  rechazamos nuestra hipotesis nula lo cual significaria que los datos no se ajustan al modelo.
 El problema es la asumcion de probabilidad incremental en forma de inversa logistica. Nuestras variables parecen que no se relacionan linealmente con el logit de la probabilidad. 
 
+# Prediccion
 
-
-
-# COMPROBACIÓN ERROR CUADRÁTICO MEDIO
-
-```{r}
-(ecm_ajuste <- mean(ajuste_bueno$residuals^2)) #  Error Cuadrático Medio de ajuste
-```
-
-La bondad del ajuste de modelo nos  indica que en promedio, los  residuos al 
-cuadrado tienen una  discrepancia de 0.071 unidades.
-
-Esto nos indica que el modelo no  ajusta perfectamente los datos y hay una
-cierta cantidad de variabilidad no explicada por el modelo.
 
 ```{r}
 prediccion <- predict(ajuste_bueno,test)
-(ecm <- mean((test$Enfermedad_Cardiaca_Ataque-prediccion)^2)) # Error Cuadrático Medio de predicción
 ```
-Con esto comprobamos que el error de predicción es mayor que el ajustado y que
-son casi igual de buenos uno que otro.
 
 # CURVA ROC
 
@@ -217,8 +207,6 @@ par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
 par.roc
 plot(par.roc)
 
-
-
 ```
 
 La capacidad de clasifciación de este modelo es alta, porque el area bajo de la curva ROC es 0.8477 con un intervalo de confianza de (-), lo que indica claramente que es un buen modelo.
@@ -226,7 +214,7 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 
 
 
-# ALTERNATIVA:
+# ALTERNATIVA LASSO:
 
 <!-- Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades. -->
 
@@ -238,6 +226,50 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 <!-- datos <- datos_relativizados -->
 
 <!-- ``` -->
+
+Vamos a cargar los datos de nuevo:
+
+```{r}
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
+
+
+datos <- data %>% 
+  rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+                         Fumador = Smoker,
+                         Verduras = Veggies,
+                         Salud_Mental = MentHlth,
+                         Educacion = Education,
+                         Presion_Sanginea_Alta = HighBP,
+                         Ataque = Stroke,
+                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
+                                                               #mujer + 7 bebidas alcholicas/semana
+                         Salud_Fisica = PhysHlth,
+                         Ingreso = Income,
+                         Colesterol_Alto = HighChol,
+                         Cuidado_Salud = AnyHealthcare,
+                         Dificultad_Andar = DiffWalk,
+                         Control_Colesterol = CholCheck,
+                         Actividad_Fisica = PhysActivity,
+                         No_Doctor_Caro = NoDocbcCost,
+                         Sexo = Sex,
+                         IMC = BMI,
+                         Frutas = Fruits,
+                         Salud_General = GenHlth,
+                         Edad = Age) # 13 categorias de edad
+
+set.seed(12345)
+
+# Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
+porcentaje_entrenamiento <- 0.7
+
+# Obtenemos el número de observaciones para el entrenamiento
+observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
+
+seleccion <- sample(nrow(data), observaciones)
+entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
+test <- datos[-seleccion,]                  # Conjunto de validación
+```
+
 
 
 Para empezar con el modelo de Lasso tendremos que estimar landa con validación cruzada de esta forma:
@@ -280,8 +312,8 @@ mean((pred.lasso.lambda1st-y)^2)
 Una vez seleccionado el valor de $\lambda$, el tercer paso es recuperar todos los datos para obtener los estimadores lasso definitivos, comprobando qué predictores han quedado en el modelo (aquellos cuyo coeficiente sea distinto de cero):
 
 ```{r}
-ajuste.lasso <- glmnet(x,y,alpha=1,lambda =round(cv.lasso$lambda.1se,3))
-coef(lasso.final)[coef(ajuste.lasso)[,1] !=0,]
+lasso_final <- glmnet(x,y,alpha=1,lambda =round(cv.lasso$lambda.1se,3))
+coef(lasso_final)[coef(lasso_final)[,1] !=0,]
 ```
 
 
@@ -290,24 +322,36 @@ En este caso, aunque el error estimado de predicción sea un poco mayor, hemos r
 Por tanto las variables seleccionadas segun Lasso son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso
 
 
-Test de Hoslem
-
 ```{r}
-library(ResourceSelection)
-hoslem.test(datos$Enfermedad_Cardiaca_Ataque, fitted(ajuste.lasso), g = 8)
+ajuste_lasso <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso, family = "binomial", data = entrenamiento)
+summary(ajuste_lasso)
 ```
 
 
 
+Test de Hoslem
+
+```{r}
+library(ResourceSelection)
+hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 8)
+```
+
+
 Prediccion
 ```{r}
-prediccion <- predict(ajuste.lasso,test)
+prediccion_lasso <- predict(ajuste_lasso,test)
 ```
 
 
 Curva ROC:
 
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion_lasso)
+par.roc
+plot(par.roc)
 
+```
 
 
 
