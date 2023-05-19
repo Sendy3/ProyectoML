@@ -159,6 +159,30 @@ Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
 #step(ajuste)
 ```
 
+### Prediccion 
+
+```{r}
+prediccion <- predict(ajuste,test, type = "response")
+
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[prediccion > 0.5] <- "1_Correct"
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe_normal<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen_normal<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen_normal,'   Specifity: ',spe_normal)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_normal <- round(100*tot,2)
+```
 
 ## AJUSTE BUENO
 
@@ -202,13 +226,14 @@ pred2[prediccion > 0.5] <- "1_Correct"
 #Calculando la matriz de confusión obtenemos que:
 
 #Specifity:
-spe<-tt[1,1]/sum(tt[1,])
+spe_bueno<-tt[1,1]/sum(tt[1,])
 #Sensivity:
-sen<-tt[2,2]/sum(tt[2,])
+sen_bueno<-tt[2,2]/sum(tt[2,])
 
 cat('Sensitivity: ',sen,'   Specifity: ',spe)
 tot<-(tt[1,1] + tt[2,2]) / sum(tt)
 cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_bueno <- round(100*tot,2)
 
 ```
 
@@ -382,6 +407,25 @@ hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 
 ### Prediccion
 ```{r}
 prediccion_lasso <- predict(ajuste_lasso,test)
+
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[prediccion > 0.5] <- "1_Correct"
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe_lasso<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen_lasso<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen_lasso,'   Specifity: ',spe_lasso)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_lasso <- round(100*tot,2)
 ```
 
 
@@ -390,12 +434,43 @@ prediccion_lasso <- predict(ajuste_lasso,test)
 ```{r}
 library(pROC)
 par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion_lasso)
-par.roc
-plot(par.roc)
+
+
+#La dibujamos
+yi<-coords(par.roc, "best")
+par(pty="s")
+plot(par.roc,xlim=c(1,0))
+points(spe,sen,col='blue')
+text(spe,sen,'p=0.5',col='blue',pos=4)
+text(spe,sen,'p=0.5',col='blue',pos=4)
+points(yi[2],yi[3],col='red')
+text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
+text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
+text(0,0,paste('95% CI:',round(ci(par.roc)[1],3),'-',round(ci(par.roc)[3],3)),pos=2)
+
 
 ```
 
 
+# 3. Comparar entre los tres ajustes
+```{r}
+#Ajuste normal
+print("Especificidad: ", spe_normal)
+print("Sensibilidad: ", sen_normal)
+print("Porcentaje: ", porcentaje_normal, "%")
 
+#Ajuste bueno
+print("Especificidad: ", spe_bueno)
+print("Sensibilidad: ", sen_bueno)
+print("Porcentaje: ", porcentaje_bueno, "%")
+
+#Ajuste lasso
+print("Especificidad: ", spe_lasso)
+print("Sensibilidad: ", sen_lasso)
+print("Porcentaje: ", porcentaje_lasso, "%")
+
+
+
+```
 
 
