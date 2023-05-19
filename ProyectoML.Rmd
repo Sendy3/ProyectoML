@@ -155,9 +155,6 @@ ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenami
 ```
 Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
 
-```{r}
-#step(ajuste)
-```
 
 ### Prediccion 
 
@@ -185,6 +182,9 @@ porcentaje_normal <- round(100*tot,2)
 ```
 
 ## AJUSTE BUENO
+```{r}
+#step(ajuste)
+```
 
 
 ```{r}
@@ -230,7 +230,7 @@ spe_bueno<-tt[1,1]/sum(tt[1,])
 #Sensivity:
 sen_bueno<-tt[2,2]/sum(tt[2,])
 
-cat('Sensitivity: ',sen,'   Specifity: ',spe)
+cat('Sensitivity: ',sen_bueno,'   Specifity: ',spe_bueno)
 tot<-(tt[1,1] + tt[2,2]) / sum(tt)
 cat('Well-classified (Bayes): ',round(100*tot,2),'%')
 porcentaje_bueno <- round(100*tot,2)
@@ -249,9 +249,9 @@ par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
 yi<-coords(par.roc, "best")
 par(pty="s")
 plot(par.roc,xlim=c(1,0))
-points(spe,sen,col='blue')
-text(spe,sen,'p=0.5',col='blue',pos=4)
-text(spe,sen,'p=0.5',col='blue',pos=4)
+points(spe_bueno,sen_bueno,col='blue')
+text(spe_bueno,sen_bueno,'p=0.5',col='blue',pos=4)
+text(spe_bueno,sen_bueno,'p=0.5',col='blue',pos=4)
 points(yi[2],yi[3],col='red')
 text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
 text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
