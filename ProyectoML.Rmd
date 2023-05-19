@@ -123,6 +123,7 @@ datos <- data %>%
                          Frutas = Fruits,
                          Salud_General = GenHlth,
                          Edad = Age) # 13 categorias de edad
+head(datos)
 
 ```
 
@@ -228,6 +229,16 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 # ALTERNATIVA:
 
 Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades.
+
+```{r}
+datos_relativizados <- as.data.frame(scale(data[, c("Enfermedad_Cardiaca_Ataque", "Presion_Sanginea_Alta",
+                                            "Colesterol_Alto", "Control_Colesterol", "IMC", "Fumador", "Actividad_Fisica",
+                                            "Frutas", "Verduras", "Consumo_Alcohol",
+                                            "Cuidado_Salud", "No_Doctor_Caro",
+                                            "Salud_General", "Salud_Mental",
+                                            "Salud_Fisica")]))  
+
+```
 
 
 
