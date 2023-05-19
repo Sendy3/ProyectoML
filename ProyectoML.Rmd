@@ -162,7 +162,7 @@ ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenami
 Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
 
 ```{r}
-step(ajuste)
+#step(ajuste)
 ```
 
 
@@ -228,37 +228,47 @@ La capacidad de clasifciación de este modelo es alta, porque el area bajo de la
 
 # ALTERNATIVA:
 
-Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades.
+<!-- Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades. -->
 
-```{r}
-datos_relativizados <- as.data.frame(scale(data[, c("Enfermedad_Cardiaca_Ataque", "Presion_Sanginea_Alta",
-                                            "Colesterol_Alto", "Control_Colesterol", "IMC", "Fumador", "Actividad_Fisica",
-                                            "Frutas", "Verduras", "Consumo_Alcohol",
-                                            "Cuidado_Salud", "No_Doctor_Caro",
-                                            "Salud_General", "Salud_Mental",
-                                            "Salud_Fisica")]))  
+<!-- ```{r} -->
+<!-- variables_numericas <- c("IMC", "Salud_Mental","Salud_Fisica", "Ingreso") -->
 
-```
+<!-- datos_relativizados <- as.data.frame(scale(datos[, variables_numericas]))   -->
+
+<!-- datos <- datos_relativizados -->
+
+<!-- ``` -->
 
 
+Para empezar con el modelo de Lasso tendremos que estimar landa con validación cruzada de esta forma:
 
 
 ```{r}
 library(glmnet)
 x <- model.matrix(Enfermedad_Cardiaca_Ataque ~ .,entrenamiento)
 y <- entrenamiento$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
+
 ```
 
 
 ```{r}
-lambdas <- 10^seq(5,-5,length=100)
+lambdas <- 10^seq(5,-3,length=100)
 set.seed(12345)
 cv.lasso <- cv.glmnet(x,y,alpha=1,lambda=lambdas)
 plot(cv.lasso)
 min(cv.lasso$cvm) #Mínimo error cuadrático medio de predicción
 cv.lasso$lambda.min  # Alcanza el mínimo ECM
 cv.lasso$lambda.1se  # Regla de un error estándar
+
 ```
+
+Segun esta grafica, podemos observar que necesitaremos entre 13 y 19 covariables ya que la primera linea sabemos que indica el ECM minimo en escala logaritmica con log(lamnda) = -7 aproximadamente y la siguiente linea de puntos verticales indica el valor de landa que estaria a menos de 1 error estandard. Por tanto, nos interesa elegir el numero de covariables que se relaciona en esa linea de puntos que aproximadamente será entre 12 y 13 covariables. 
+
+Pero si aplicamos la regla de 1 error estandard, realmente no se distinguir entre los lamndas cercanos a este primero. El mas grande, utilizando las reglas de un error estandard, seria la segunda linea. El ECM en esta linea, será mas grande que en la primera pero se diferencian en menos de 1 error estandard entonces no podemos diferenciar y no podemos saber cual es mejor porque esta dentro del rango de error de medida. 
+Habitualmente elegimos un lamnda entre estas lineas, con un redondeo de 3 decimales. Por tanto, lamnda que elegimos es 0.005.
+
+Por lo tanto seguimos con incertidumbre, y esa incertidumbre la medimos con intervalos de confianza que se construyen con los errores estandard. Nos dice hasta que putno estoy convencido del valor. 
+
 
 
 Utilizando $\lambda =$ `r round(cv.lasso$lambda.1se,3)`, el error de predicción es:
@@ -267,5 +277,56 @@ lasso.lambda1st <- glmnet(x,y,alpha=1,lambda=round(cv.lasso$lambda.1se,3))
 pred.lasso.lambda1st <- predict(lasso.lambda1st,s=round(cv.lasso$lambda.1se,3),newx=x)
 mean((pred.lasso.lambda1st-y)^2)
 ```
+Una vez seleccionado el valor de $\lambda$, el tercer paso es recuperar todos los datos para obtener los estimadores lasso definitivos, comprobando qué predictores han quedado en el modelo (aquellos cuyo coeficiente sea distinto de cero):
+
+```{r}
+ajuste.lasso <- glmnet(x,y,alpha=1,lambda =round(cv.lasso$lambda.1se,3))
+coef(lasso.final)[coef(ajuste.lasso)[,1] !=0,]
+```
+
+
+En este caso, aunque el error estimado de predicción sea un poco mayor, hemos reducido a la mitad el número de variables en el modelo.
+
+Por tanto las variables seleccionadas segun Lasso son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso
+
+
+Test de Hoslem
+
+```{r}
+library(ResourceSelection)
+hoslem.test(datos$Enfermedad_Cardiaca_Ataque, fitted(ajuste.lasso), g = 8)
+```
+
+
+
+Prediccion
+```{r}
+prediccion <- predict(ajuste.lasso,test)
+```
+
+
+Curva ROC:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
