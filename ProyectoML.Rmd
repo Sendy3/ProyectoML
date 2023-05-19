@@ -345,9 +345,17 @@ ajuste_lasso <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Coleste
 summary(ajuste_lasso)
 ```
 
+# Graficos: Validacion del modelo
+
+El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
 
 
-Test de Hoslem
+```{r}
+par(mfrow = c(2,2))
+plot(ajuste_lasso)
+```
+
+# Test de Hoslem
 
 ```{r}
 library(ResourceSelection)
@@ -355,13 +363,13 @@ hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 
 ```
 
 
-Prediccion
+# Prediccion
 ```{r}
 prediccion_lasso <- predict(ajuste_lasso,test)
 ```
 
 
-Curva ROC:
+# Curva ROC
 
 ```{r}
 library(pROC)
