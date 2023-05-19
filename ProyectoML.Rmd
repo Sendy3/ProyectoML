@@ -67,22 +67,15 @@ search()
 
 
 
-## 1. Introducción del trabajo
 
-El objetivo de este trabajo es analizar los datos recogidos por 
-
-
-
-
-
-# 1.1. Carga de datos
+## *1. Carga de datos.*
 
 ```{r}
 data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
 ```
 
 
-# 1.2.Transformación de datos
+### Transformación de datos
 
 En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
 verdad se corresponden con una variable factor donde se representan los grupos 
@@ -128,7 +121,7 @@ datos <- data %>%
 
 
 
-# 2. Validación para medir la predictividad del modelo
+## *2. Validación para medir la predictividad del modelo.*
 
 Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y entrenamiento. Y generaremos nuestro modelo a partir de los datos almacenados en la variable entrenamiento y lo comprobaremos con los datos almacenados en la variable test.
 
@@ -146,6 +139,8 @@ seleccion <- sample(nrow(data), observaciones)
 entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
 test <- datos[-seleccion,]                  # Conjunto de validación
 ```
+
+## AJUSTE NORMAL 
 
 Lo primero que haremos será comprobar la capacidad de predicción del modelo lineal.
 
@@ -165,6 +160,9 @@ Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
 ```
 
 
+## AJUSTE BUENO
+
+
 ```{r}
 ajuste_bueno <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + 
     Control_Colesterol + Fumador + Ataque + Diabetes + Actividad_Fisica + 
@@ -178,15 +176,24 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
+### Graficos: Validacion del modelo
+
+El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
 
 
+```{r}
+par(mfrow = c(2,2))
+plot(ajuste_bueno)
+```
+
+### Predicción
 
 ```{r}
 prediccion <- predict(ajuste_bueno,test)
 ```
 
 
-# CURVA ROC
+### Curva ROC
 
 ```{r}
 library(pROC)
@@ -198,6 +205,8 @@ plot(par.roc)
 
 ```
 
+
+### Test Hoslem
 
 ```{r}
 library(ResourceSelection)
@@ -211,7 +220,7 @@ El problema es la asumcion de probabilidad incremental en forma de inversa logis
 
 
 
-# ALTERNATIVA LASSO:
+## AJUSTE LASSO
 
 <!-- Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades. -->
 
@@ -298,8 +307,6 @@ Habitualmente elegimos un lamnda entre estas lineas, con un redondeo de 3 decima
 
 Por lo tanto seguimos con incertidumbre, y esa incertidumbre la medimos con intervalos de confianza que se construyen con los errores estandard. Nos dice hasta que putno estoy convencido del valor. 
 
-
-
 Utilizando $\lambda =$ `r round(cv.lasso$lambda.1se,3)`, el error de predicción es:
 ```{r}
 lasso.lambda1st <- glmnet(x,y,alpha=1,lambda=round(cv.lasso$lambda.1se,3))
@@ -318,15 +325,23 @@ En este caso, aunque el error estimado de predicción sea un poco mayor, hemos r
 
 Por tanto las variables seleccionadas segun Lasso son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso
 
-
 ```{r}
 ajuste_lasso <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso, family = "binomial", data = entrenamiento)
 summary(ajuste_lasso)
 ```
 
+### Graficos: Validacion del modelo
+
+El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
 
 
-Test de Hoslem
+```{r}
+par(mfrow = c(2,2))
+plot(ajuste_lasso)
+```
+
+
+### Test de Hoslem
 
 ```{r}
 library(ResourceSelection)
@@ -334,13 +349,13 @@ hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 
 ```
 
 
-Prediccion
+### Prediccion
 ```{r}
 prediccion_lasso <- predict(ajuste_lasso,test)
 ```
 
 
-Curva ROC:
+### Curva ROC
 
 ```{r}
 library(pROC)
@@ -349,5 +364,8 @@ par.roc
 plot(par.roc)
 
 ```
+
+
+
 
 
