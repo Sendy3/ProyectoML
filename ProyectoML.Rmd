@@ -179,6 +179,24 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
+# Graficos: Validacion del modelo
+
+El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
+
+
+```{r}
+par(mfrow = c(2,2))
+plot(ajuste_bueno)
+```
+
+
+
+
+
+
+# Test hoslem
+
+
 ```{r}
 library(ResourceSelection)
 hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_bueno), g = 8)
