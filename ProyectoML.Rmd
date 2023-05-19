@@ -67,7 +67,7 @@ search()
 
 
 
-# 1. Introducción del trabajo
+## 1. Introducción del trabajo
 
 El objetivo de este trabajo es analizar los datos recogidos por 
 
@@ -75,49 +75,31 @@ El objetivo de este trabajo es analizar los datos recogidos por
 
 
 
-#Carga de datos
+# 1.1. Carga de datos
 
 ```{r}
-
-data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv", col_types = cols(
-  HeartDiseaseorAttack = col_double(),
-  Smoker = col_double(),
-  Veggies = col_double(),
-  MentHlth = col_double(),
-  Education = col_double(),
-  HighBP = col_double(),
-  Stroke = col_double(),
-  HvyAlcoholConsump = col_double(),
-  PhysHlth = col_double(),
-  Income = col_double(),
-  HighChol = col_double(),
-  Diabetes = col_double(),
-  AnyHealthcare = col_double(),
-  DiffWalk = col_double(),
-  CholCheck = col_double(),
-  PhysActivity = col_double(),
-  NoDocbcCost = col_double(),
-  Sex = col_double(),
-  BMI = col_double(),
-  Fruits = col_double(),
-  GenHlth = col_double(),
-  Age = col_double()
-))
-
+data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
 ```
 
 
+# 1.2.Transformación de datos
+
+En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
+verdad se corresponden con una variable factor donde se representan los grupos 
+de edad. 
+
 ```{r}
-# Cambiar los nombres a las variables a Español para entenderlas :)
-datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
-                         Fumador = Smoker,
-                         Verduras = Veggies,
+
+datos <- data %>% 
+  rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
+                         Fumador = Smoker, # 1 es si ha fumado 100 cigarros en toda su vida o si no 0
+                         Verduras = Veggies, # 1 si consume verduras 1 o más veces por dia
                          Salud_Mental = MentHlth,
                          Educacion = Education,
                          Presion_Sanginea_Alta = HighBP,
                          Ataque = Stroke,
-                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
-                                                               #mujer + 7 bebidas alcholicas/semana
+                         Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana (1)
+                                                               #mujer + 7 bebidas alcholicas/semana (0)
                          Salud_Fisica = PhysHlth,
                          Ingreso = Income,
                          Colesterol_Alto = HighChol,
@@ -128,63 +110,149 @@ datos <- data %>% rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
                          No_Doctor_Caro = NoDocbcCost,
                          Sexo = Sex, # mujer 0, hombre 1
                          IMC = BMI,
-                         Frutas = Fruits,
+                         Frutas = Fruits, # 1 si consume frutas 1 o más veces por dia
                          Salud_General = GenHlth,
-                         Edad = Age) # 14 categorias de edad
-```
-
-
-```{r}
-# vemos si tiene que ver tener un ataque cardiaco con el índice de masa corporal
-# El ajuste mínimos cuadrados de esos datos es:
-lm_todos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=datos)
-plot(datos$IMC, datos$Enfermedad_Cardiaca_Ataque, col='BLUE', xlab='IMC', ylab='Enfermedad Cardiaca')
-abline(coef=coef(lm_todos), col='RED')
-
-# Seleccionamos a los hombres
-hombres <- subset(datos, Sexo==1)
-# El ajuste mínimos cuadrados de esos datos es:
-lm_hombres <- lm(Enfermedad_Cardiaca_Ataque ~ IMC, data=hombres)
-
-# Seleccionamos a las mujeres
-mujeres <- subset(datos, Sexo==0)
-# El ajuste mínimos cuadrados de esos datos es:
-lm_mujeres <- lm(Enfermedad_Cardiaca_Ataque ~ IMC, data=mujeres)
-
-plot(datos$IMC, datos$Enfermedad_Cardiaca_Ataque, col='BLUE', xlab='IMC', ylab='Enfermedad Cardiaca')
-abline(coef=coef(lm_todos), col='deeppink3',  lwd = 2)
-abline(coef=coef(lm_hombres), col='BLUE',  lwd = 2)
-abline(coef=coef(lm_mujeres), col='RED',  lwd = 2)
-points(mujeres$IMC,mujeres$Enfermedad_Cardiaca_Ataque,col='RED')
-legend(x = "topright", legend = c("todos", "hombres", "mujeres"), fill = c("deeppink3","BLUE", "RED"))
+                         Edad = Age) # 13 categorias de edad
 
 ```
 
 
+Hacemos un gráfico inicial para ver como se distribuyen los datos de las variables que creemos que pueden influir a la hora de tener una enfermedad cardiaca
+```{r}
+colores <- c("Hombre" = "#37a4d7",
+             "Mujer" = "#9c3035")
+datos2 <- datos 
+datos2$Edad <- factor(datos2$Edad, levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
+                   labels= c("[18 a 24]", "[25 a 29]", "[30 a 34]", "[35 a 39]", "[40 a 44]", "[45 a 49]", "[50 a 54]", "[55 a 59]", "[60 a 64]", "[65 a 69]", "[70 a 74]", "[75 a 79]", "[80 o más]")) 
+
+datos3 <- datos2 %>%
+      group_by(Edad,Sexo) %>% 
+      filter(Enfermedad_Cardiaca_Ataque == 1) %>% # vemos los que han tenido enfermedad cardiaca o ataque por sexo
+      count(Enfermedad_Cardiaca_Ataque) %>% 
+      mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+      ungroup() %>% 
+      arrange(factor(Edad))
+
+datos3 %>% plot_ly(x = ~Edad, y = ~n, type = 'bar',color = ~ factor(Sexo), colors = colores) %>% 
+      layout(xaxis = list(title = "Edades"),
+             yaxis = list(title = "Cantidad de enfermedades cardiacas")) %>% 
+      config(displayModeBar = FALSE)
 
 
+datos4 <- datos2 %>% 
+  group_by(Edad, Sexo, Fumador) %>% 
+  filter(Enfermedad_Cardiaca_Ataque == 1) %>% # vemos los que han tenido enfermedad cardiaca o ataque por sexo y fumador
+  count(Enfermedad_Cardiaca_Ataque) %>% 
+  mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+  mutate(Fumador = ifelse(Fumador == 1, "Fumador", "No Fumador")) %>%
+  ungroup() %>% 
+  arrange(factor(Edad))
+
+datos4 %>% 
+  ggplot(aes(x = Edad, y = n, fill = factor(Sexo))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ Fumador) +
+  labs(x = "Edades", y = "Cantidad de enfermedades cardiacas") +
+  scale_fill_manual(values = colores) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = -35, hjust = 1))
+```
+
+Ahora mostramos en una tabla las variables del gráfico anterior sin contar la edad
 
 ```{r}
+library(DT)
+datos2 %>% 
+  group_by(Sexo, Fumador, Colesterol_Alto, Diabetes) %>% 
+  mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+  mutate(Fumador = ifelse(Fumador == 1, "Fumador", "No Fumador")) %>% 
+  mutate(Colesterol_Alto = ifelse(Fumador == 1, "Colesterol alto", "No coresterol alto")) %>% 
+  
+  summarize(media_ataques = round(mean(Enfermedad_Cardiaca_Ataque),2)) %>% DT::datatable(extensions = 'Buttons', 
+               options = list(dom = 'Blfrtip', 
+                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
+                              pageLength = 5, autoWidth = TRUE ))
+```
+
+
+# 2. Validación para medir la predictividad del modelo
+
+Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y entrenamiento. Y generaremos nuestro modelo a partir de los datos almacenados en la variable entrenamiento y lo comprobaremos con los datos almacenados en la variable test.
+
+```{r}
+
 set.seed(12345)
-seleccion <- sample(nrow(datos),round(nrow(datos)/2))
+
+# Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
+porcentaje_entrenamiento <- 0.7
+
+# Obtenemos el número de observaciones para el entrenamiento
+observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
+
+seleccion <- sample(nrow(data), observaciones)
 entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
 test <- datos[-seleccion,]                  # Conjunto de validación
 ```
 
+Lo primero que haremos será comprobar la capacidad de predicción del modelo lineal.
+
+Como variable respuesta tenemos: Enfermedad_Cardiaca_Ataque
+
+Ya que nos interesa saber de que depende este evento, por ello usamos 
+el resto de variables como predictoras. Estimamos los modelos usando el conjunto de datos del banco de entrenamiento.
 
 
 ```{r}
-#
-lm_datos <- lm(Enfermedad_Cardiaca_Ataque ~ ., data=entrenamiento)
-summary(lm_datos)
+ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenamiento)
 ```
+Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
+
+```{r,  eval = FALSE}
+step(ajuste)
+```
+
+
+```{r}
+ajuste_bueno <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + 
+    Control_Colesterol + Fumador + Ataque + Diabetes + Actividad_Fisica + 
+    Verduras + Consumo_Alcohol + No_Doctor_Caro + Salud_General + 
+    Salud_Mental + Dificultad_Andar + Sexo + Edad + Educacion + 
+    Ingreso, family = "binomial", data = entrenamiento)
+summary(ajuste_bueno)
+```
+
+En este caso podemos ver que la formula de regresion quedaria tal que:
+
+Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
+
 
 
 
 ```{r}
+prediccion <- predict(ajuste_bueno,test)
+```
+
+
+# CURVA ROC
+
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
+par.roc
+plot(par.roc)
+
+
 
 ```
 
+
+```{r}
+library(ResourceSelection)
+hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_bueno), g = 8)
+```
+
+Como podemos observar en el resultado del test, tenemos un p-valor muy pequeño(p-valor = 2.2e-16), con lo que podemos concluir que  rechazamos nuestra hipotesis nula lo cual significaria que los datos no se ajustan al modelo.
+El problema es la asumcion de probabilidad incremental en forma de inversa logistica. Nuestras variables parecen que no se relacionan linealmente con el logit de la probabilidad. 
 
 
 
