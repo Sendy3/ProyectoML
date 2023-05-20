@@ -236,6 +236,30 @@ cat('Well-classified (Bayes): ',round(100*tot,2),'%')
 porcentaje_normal <- round(100*tot,2)
 ```
 
+### Curva ROC
+
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
+
+
+#La dibujamos
+yi<-coords(par.roc, "best")
+par(pty="s")
+plot(par.roc,xlim=c(1,0))
+points(spe_normal,sen_normal,col='blue')
+text(spe_normal,sen_normal,'p=0.5',col='blue',pos=4)
+text(spe_normal,sen_normal,'p=0.5',col='blue',pos=4)
+points(yi[2],yi[3],col='red')
+text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
+text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
+text(0,0,paste('95% CI:',round(ci(par.roc)[1],3),'-',round(ci(par.roc)[3],3)),pos=2)
+
+
+```
+
+
+
 ## AJUSTE BUENO
 ```{r}
 step(ajuste)
