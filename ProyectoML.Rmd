@@ -277,7 +277,8 @@ summary(ajuste_bueno)
 
 En este caso podemos ver que la formula de regresion quedaria tal que:
 
-Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Mental + b8Dificultad_Andar + b9Ingreso + b10Sexo + b11Consumo_Alcohol + b12Control_Colesterol.
+Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Control_Colesterol + b4Fumador + b5Ataque + b6Diabetes + b7Consumo_Alcohol + b8No_Doctor_Caro + b9Salud_General + b10Salud_Mental + b11Dificultad_Andar + b12Sexo + b13Edad + b14Ingreso
+
 
 
 ### Predicción
