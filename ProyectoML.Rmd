@@ -67,22 +67,15 @@ search()
 
 
 
-## 1. Introducción del trabajo
 
-El objetivo de este trabajo es analizar los datos recogidos por 
-
-
-
-
-
-# 1.1. Carga de datos
+## *1. Carga de datos.*
 
 ```{r}
 data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
 ```
 
 
-# 1.2.Transformación de datos
+### Transformación de datos
 
 En los datos cargados la variable Age toma valores numéricos (1 al 13) que en
 verdad se corresponden con una variable factor donde se representan los grupos 
@@ -90,9 +83,8 @@ de edad.
 
 ```{r}
 
-data$Age <- factor(data$Age,                                   
-                   levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
-                   labels= c("Edad 18 hasta 24", "Edad 25 hasta 29", "Edad 30 hasta 34", "Edad 35 hasta 39", "Edad 40 hasta 44", "Edad 45 hasta 49", "Edad 50 hasta 54", "Edad 55 hasta 59", "Edad 60 hasta 64", "Edad 65 hasta 69", "Edad 70 hasta 74", "Edad 75 hasta 79", "Edad 80 o mas"))
+data$Age <- factor(data$Age, levels=c(1,2,3,4,5,6,7,8,9,10,11,12,13),
+                   labels= c("[18 a 24]", "[25 a 29]", "[30 a 34]", "[35 a 39]", "[40 a 44]", "[45 a 49]", "[50 a 54]", "[55 a 59]", "[60 a 64]", "[65 a 69]", "[70 a 74]", "[75 a 79]", "[80 o más]")) 
 
 data$Diabetes <- as.factor(data$Diabetes)
 data$GenHlth <- as.factor(data$GenHlth)
@@ -123,13 +115,68 @@ datos <- data %>%
                          Frutas = Fruits,
                          Salud_General = GenHlth,
                          Edad = Age) # 13 categorias de edad
-head(datos)
 
+```
+
+### Mostramos los datos
+
+Hacemos un gráfico inicial para ver como se distribuyen los datos de las variables que creemos que pueden influir a la hora de tener una enfermedad cardiaca
+```{r}
+colores <- c("Hombre" = "#37a4d7",
+             "Mujer" = "#9c3035")
+datos3 <- datos %>%
+      group_by(Edad,Sexo) %>% 
+      filter(Enfermedad_Cardiaca_Ataque == 1) %>% # vemos los que han tenido enfermedad cardiaca o ataque por sexo
+      count(Enfermedad_Cardiaca_Ataque) %>% 
+      mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+      ungroup() %>% 
+      arrange(factor(Edad))
+
+datos3 %>% plot_ly(x = ~Edad, y = ~n, type = 'bar',color = ~ factor(Sexo), colors = colores) %>% 
+      layout(xaxis = list(title = "Edades"),
+             yaxis = list(title = "Cantidad de enfermedades cardiacas")) %>% 
+      config(displayModeBar = FALSE)
+
+
+datos4 <- datos %>% 
+  group_by(Edad, Sexo, Fumador) %>% 
+  filter(Enfermedad_Cardiaca_Ataque == 1) %>% # vemos los que han tenido enfermedad cardiaca o ataque por sexo y fumador
+  count(Enfermedad_Cardiaca_Ataque) %>% 
+  mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+  mutate(Fumador = ifelse(Fumador == 1, "Fumador", "No Fumador")) %>%
+  ungroup() %>% 
+  arrange(factor(Edad))
+
+datos4 %>% 
+  ggplot(aes(x = Edad, y = n, fill = factor(Sexo))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ Fumador) +
+  labs(x = "Edades", y = "Cantidad de enfermedades cardiacas") +
+  scale_fill_manual(values = colores) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = -35, hjust = 1))
 ```
 
 
 
-# 2. Validación para medir la predictividad del modelo
+Ahora mostramos en una tabla las variables del gráfico anterior junto con otras que también creemos que son importantes sin contar la edad
+
+```{r}
+library(DT)
+datos %>% 
+  group_by(Sexo, Fumador, Colesterol_Alto, Diabetes) %>% 
+  mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
+  mutate(Fumador = ifelse(Fumador == 1, "Fumador", "No Fumador")) %>% 
+  mutate(Colesterol_Alto = ifelse(Fumador == 1, "Colesterol alto", "No coresterol alto")) %>% 
+  
+  summarize(media_ataques = round(mean(Enfermedad_Cardiaca_Ataque),2)) %>% DT::datatable(extensions = 'Buttons', 
+               options = list(dom = 'Blfrtip', 
+                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
+                              pageLength = 5, autoWidth = TRUE ))
+```
+
+
+## *2. Validación para medir la predictividad del modelo.*
 
 Para empezar a trabajar con nuestros datos, vamos a dividirlos en validación y entrenamiento. Y generaremos nuestro modelo a partir de los datos almacenados en la variable entrenamiento y lo comprobaremos con los datos almacenados en la variable test.
 
@@ -148,6 +195,8 @@ entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
 test <- datos[-seleccion,]                  # Conjunto de validación
 ```
 
+## AJUSTE NORMAL 
+
 Lo primero que haremos será comprobar la capacidad de predicción del modelo lineal.
 
 Como variable respuesta tenemos: Enfermedad_Cardiaca_Ataque
@@ -161,6 +210,33 @@ ajuste <- glm(Enfermedad_Cardiaca_Ataque ~ ., family = "binomial",data=entrenami
 ```
 Ahora vamos a elegir las variables que mejor que ajustan segun su AIC
 
+
+### Prediccion 
+
+```{r}
+prediccion <- predict(ajuste,test, type = "response")
+
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[prediccion > 0.5] <- "1_Correct"
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe_normal<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen_normal<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen_normal,'   Specifity: ',spe_normal)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_normal <- round(100*tot,2)
+```
+
+## AJUSTE BUENO
 ```{r}
 #step(ajuste)
 ```
@@ -179,91 +255,79 @@ En este caso podemos ver que la formula de regresion quedaria tal que:
 
 Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
 
-# Graficos: Validacion del modelo
 
-El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
+### Predicción
 
 
 ```{r}
-par(mfrow = c(2,2))
-plot(ajuste_bueno)
+prediccion <- predict(ajuste_bueno,test, type = "response")
+
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[prediccion > 0.5] <- "1_Correct"
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe_bueno<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen_bueno<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen_bueno,'   Specifity: ',spe_bueno)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_bueno <- round(100*tot,2)
+
 ```
 
 
+### Curva ROC
+
+```{r}
+library(pROC)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
 
 
+#La dibujamos
+yi<-coords(par.roc, "best")
+par(pty="s")
+plot(par.roc,xlim=c(1,0))
+points(spe_bueno,sen_bueno,col='blue')
+text(spe_bueno,sen_bueno,'p=0.5',col='blue',pos=4)
+text(spe_bueno,sen_bueno,'p=0.5',col='blue',pos=4)
+points(yi[2],yi[3],col='red')
+text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
+text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
+text(0,0,paste('95% CI:',round(ci(par.roc)[1],3),'-',round(ci(par.roc)[3],3)),pos=2)
 
 
-# Test hoslem
+```
 
+
+### Test Hoslem
 
 ```{r}
 library(ResourceSelection)
 hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_bueno), g = 8)
 ```
 
-Nos da estos valores porque seguramente hayan variables que no se relacionen de forma lineal. 
-
-Haya alguna variable o variables que no se relacionan de forma lineal con la inversa logit de la probabilidad. Es decir, que haya alguna variable o variables que tienen un punto en el q minimiza o maximiza la probabilidad y cuando se alejan de ese punto, esa probabilidad crece o decrece.
-
-
 Como podemos observar en el resultado del test, tenemos un p-valor muy pequeño(p-valor = 2.2e-16), con lo que podemos concluir que  rechazamos nuestra hipotesis nula lo cual significaria que los datos no se ajustan al modelo.
 El problema es la asumcion de probabilidad incremental en forma de inversa logistica. Nuestras variables parecen que no se relacionan linealmente con el logit de la probabilidad. 
 
-# Prediccion
-
-
-```{r}
-prediccion <- predict(ajuste_bueno,test)
-```
-
-# CURVA ROC
-
-```{r}
-library(pROC)
-par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion)
-par.roc
-plot(par.roc)
-
-```
-
-La capacidad de clasifciación de este modelo es alta, porque el area bajo de la curva ROC es 0.8477 con un intervalo de confianza de (-), lo que indica claramente que es un buen modelo.
 
 
 
 
-# ALTERNATIVA LASSO:
-
-Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades.
-
-# ```{r}
-# variables_numericas <- c("IMC", "Salud_Mental","Salud_Fisica")
-# 
-# datos_relativizados1 <- as.data.frame(scale(datos[, variables_numericas]))
-# 
-# datos_relativizados <- 
-# 
-# datos <- datos_relativizados
-# 
-# ```
-
-Vamos a cargar los datos de nuevo:
-
-```{r}
-
-head(entrenamiento)
-
-
-```
-
+## AJUSTE LASSO
 
 
 Para empezar con el modelo de Lasso tendremos que estimar landa con validación cruzada de esta forma:
 
 
 ```{r}
-head(entrenamiento)
-
 library(glmnet)
 x <- model.matrix(Enfermedad_Cardiaca_Ataque ~ .,entrenamiento)
 y <- entrenamiento$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
@@ -271,10 +335,10 @@ y <- entrenamiento$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
 ```
 
 
+
 ```{r}
-lambdas <- 10^seq(5,-3,length=100)
 set.seed(12345)
-cv.lasso <- cv.glmnet(x,y,alpha=1,lambda=lambdas)
+cv.lasso <- cv.glmnet(x,y,alpha=1, family = "binomial")
 plot(cv.lasso)
 min(cv.lasso$cvm) #Mínimo error cuadrático medio de predicción
 cv.lasso$lambda.min  # Alcanza el mínimo ECM
@@ -282,17 +346,19 @@ cv.lasso$lambda.1se  # Regla de un error estándar
 
 ```
 
-Segun esta grafica, podemos observar que necesitaremos entre 13 y 19 covariables ya que la primera linea sabemos que indica el ECM minimo en escala logaritmica con log(lamnda) = -7 aproximadamente y la siguiente linea de puntos verticales indica el valor de landa que estaria a menos de 1 error estandard. Por tanto, nos interesa elegir el numero de covariables que se relaciona en esa linea de puntos que aproximadamente será entre 12 y 13 covariables. 
+
+Segun esta grafica, podemos observar que necesitaremos entre 33 y 43 covariables ya que la primera linea sabemos que indica el ECM minimo en escala logaritmica con log(lamnda) = -7 aproximadamente y la siguiente linea de puntos verticales indica el valor de landa que estaria a menos de 1 error estandard. Por tanto, nos interesa elegir el numero de covariables que se relaciona en esa linea de puntos que aproximadamente será entre 33 y 34 covariables (contando como covariables tambien las categorias de aquellas variables categoricas). 
 
 Pero si aplicamos la regla de 1 error estandard, realmente no se distinguir entre los lamndas cercanos a este primero. El mas grande, utilizando las reglas de un error estandard, seria la segunda linea. El ECM en esta linea, será mas grande que en la primera pero se diferencian en menos de 1 error estandard entonces no podemos diferenciar y no podemos saber cual es mejor porque esta dentro del rango de error de medida. 
 Habitualmente elegimos un lamnda entre estas lineas, con un redondeo de 3 decimales. Por tanto, lamnda que elegimos es 0.005.
 
 Por lo tanto seguimos con incertidumbre, y esa incertidumbre la medimos con intervalos de confianza que se construyen con los errores estandard. Nos dice hasta que putno estoy convencido del valor. 
 
-
-
 Utilizando $\lambda =$ `r round(cv.lasso$lambda.1se,3)`, el error de predicción es:
 ```{r}
+x <- model.matrix(Enfermedad_Cardiaca_Ataque ~ .,test)
+y <- test$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
+
 lasso.lambda1st <- glmnet(x,y,alpha=1,lambda=round(cv.lasso$lambda.1se,3))
 pred.lasso.lambda1st <- predict(lasso.lambda1st,s=round(cv.lasso$lambda.1se,3),newx=x)
 mean((pred.lasso.lambda1st-y)^2)
@@ -305,50 +371,82 @@ coef(lasso_final)[coef(lasso_final)[,1] !=0,]
 ```
 
 
-En este caso, aunque el error estimado de predicción sea un poco mayor, hemos reducido a la mitad el número de variables en el modelo.
-
-Por tanto las variables seleccionadas segun Lasso son: Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso
 
 
-```{r}
-ajuste_lasso <- glm(Enfermedad_Cardiaca_Ataque ~ Presion_Sanginea_Alta + Colesterol_Alto + IMC + Fumador + Ataque + Diabetes + Salud_General + Salud_Fisica + Dificultad_Andar + Sexo + Edad + Ingreso, family = "binomial", data = entrenamiento)
-summary(ajuste_lasso)
-```
-
-# Graficos: Validacion del modelo
-
-El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
-
+### Test de Hoslem
 
 ```{r}
-par(mfrow = c(2,2))
-plot(ajuste_lasso)
-```
-
-# Test de Hoslem
-
-```{r}
-library(ResourceSelection)
-hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 8)
+# library(ResourceSelection)
+# hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(lasso_final), g = 8)
 ```
 
 
-# Prediccion
+### Prediccion
 ```{r}
-prediccion_lasso <- predict(ajuste_lasso,test)
+#Hacemos que sea binario 
+pred2 <- rep("0_Incorrect",length(test$Enfermedad_Cardiaca_Ataque))
+pred2[pred.lasso.lambda1st > 0.5] <- "1_Correct"  ####CAMBIAR ESTO PARA QUE NOS DEN MAS ATAQUES AL CORAZON
+
+#Lo ponemos en tabla
+(tt<-table(test$Enfermedad_Cardiaca_Ataque, pred2))
+
+#Calculando la matriz de confusión obtenemos que:
+
+#Specifity:
+spe_lasso<-tt[1,1]/sum(tt[1,])
+#Sensivity:
+sen_lasso<-tt[2,2]/sum(tt[2,])
+
+cat('Sensitivity: ',sen_lasso,'   Specifity: ',spe_lasso)
+tot<-(tt[1,1] + tt[2,2]) / sum(tt)
+cat('Well-classified (Bayes): ',round(100*tot,2),'%')
+porcentaje_lasso <- round(100*tot,2)
 ```
 
 
-# Curva ROC
+### Curva ROC
 
 ```{r}
 library(pROC)
-par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion_lasso)
-par.roc
-plot(par.roc)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, pred.lasso.lambda1st)
+
+
+#La dibujamos
+yi<-coords(par.roc, "best")
+par(pty="s")
+plot(par.roc,xlim=c(1,0))
+points(spe_lasso,sen_lasso,col='blue')
+text(spe_lasso,sen_lasso,'p=0.5',col='blue',pos=4)
+text(spe_lasso,sen_lasso,'p=0.5',col='blue',pos=4)
+points(yi[2],yi[3],col='red')
+text(yi[2],yi[3],paste('p*=',round(yi[1],3)),col='red',pos='2')
+text(0,0.1,paste('AUC=',round(par.roc$auc,3)),pos=2)
+text(0,0,paste('95% CI:',round(ci(par.roc)[1],3),'-',round(ci(par.roc)[3],3)),pos=2)
+
 
 ```
 
+
+# 3. Comparar entre los tres ajustes
+```{r}
+#Ajuste normal
+print(paste("Especificidad: ", spe_normal))
+print(paste("Sensibilidad: ", sen_normal))
+print(paste("Porcentaje: ", porcentaje_normal, "%"))
+
+#Ajuste bueno
+print(paste("Especificidad: ", spe_bueno))
+print(paste("Sensibilidad: ", sen_bueno))
+print(paste("Porcentaje: ", porcentaje_bueno, "%"))
+
+#Ajuste lasso
+print(paste("Especificidad: ", spe_lasso))
+print(paste("Sensibilidad: ", sen_lasso))
+print(paste("Porcentaje: ", porcentaje_lasso, "%"))
+
+
+
+```
 
 
 
