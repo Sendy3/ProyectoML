@@ -253,17 +253,8 @@ summary(ajuste_bueno)
 
 En este caso podemos ver que la formula de regresion quedaria tal que:
 
-Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Fisica + b8Dificultad_Andar + b9Ingreso.
+Enfermedad_Cardiaca_Ataque = b0 + b1Presion_Sanginea_Alta + b2Colesterol_Alto + b3Fumador + b4Ataque + b5Diabetes + b6Salud_General + b7Salud_Mental + b8Dificultad_Andar + b9Ingreso + b10Sexo + b11Consumo_Alcohol + b12Control_Colesterol.
 
-### Graficos: Validacion del modelo
-
-El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
-
-
-```{r}
-par(mfrow = c(2,2))
-plot(ajuste_bueno)
-```
 
 ### Predicción
 
@@ -332,61 +323,6 @@ El problema es la asumcion de probabilidad incremental en forma de inversa logis
 
 ## AJUSTE LASSO
 
-<!-- Primero tenemos que tipificar los datos para que todas las variables tengan las mismas unidades. -->
-
-<!-- ```{r} -->
-<!-- variables_numericas <- c("IMC", "Salud_Mental","Salud_Fisica", "Ingreso") -->
-
-<!-- datos_relativizados <- as.data.frame(scale(datos[, variables_numericas]))   -->
-
-<!-- datos <- datos_relativizados -->
-
-<!-- ``` -->
-
-Vamos a cargar los datos de nuevo:
-
-```{r}
-# data <- read_csv("data/heart_disease_health_indicators_BRFSS2015.csv")
-# 
-# 
-# datos <- data %>% 
-#   rename(Enfermedad_Cardiaca_Ataque = HeartDiseaseorAttack,
-#                          Fumador = Smoker,
-#                          Verduras = Veggies,
-#                          Salud_Mental = MentHlth,
-#                          Educacion = Education,
-#                          Presion_Sanginea_Alta = HighBP,
-#                          Ataque = Stroke,
-#                          Consumo_Alcohol = HvyAlcoholConsump,  #Hombre + 14 bebidas alcholicas/semana
-#                                                                #mujer + 7 bebidas alcholicas/semana
-#                          Salud_Fisica = PhysHlth,
-#                          Ingreso = Income,
-#                          Colesterol_Alto = HighChol,
-#                          Cuidado_Salud = AnyHealthcare,
-#                          Dificultad_Andar = DiffWalk,
-#                          Control_Colesterol = CholCheck,
-#                          Actividad_Fisica = PhysActivity,
-#                          No_Doctor_Caro = NoDocbcCost,
-#                          Sexo = Sex,
-#                          IMC = BMI,
-#                          Frutas = Fruits,
-#                          Salud_General = GenHlth,
-#                          Edad = Age) # 13 categorias de edad
-# 
-# set.seed(12345)
-# 
-# # Establecemos el porcentaje de observaciones para el conjunto de entrenamiento y prueba
-# porcentaje_entrenamiento <- 0.7
-# 
-# # Obtenemos el número de observaciones para el entrenamiento
-# observaciones <- round(porcentaje_entrenamiento * nrow(data)) 
-# 
-# seleccion <- sample(nrow(data), observaciones)
-# entrenamiento <- datos[seleccion,]          # Conjunto de entrenamiento
-# test <- datos[-seleccion,]                  # Conjunto de validación
-```
-
-
 
 Para empezar con el modelo de Lasso tendremos que estimar landa con validación cruzada de esta forma:
 
@@ -399,19 +335,8 @@ y <- entrenamiento$Enfermedad_Cardiaca_Ataque #vector de variable respuesta
 ```
 
 
-```{r}
-# lambdas <- 10^seq(5,-3,length=100)
-# set.seed(12345)
-# cv.lasso <- cv.glmnet(x,y,alpha=1,lambda=lambdas)
-# plot(cv.lasso)
-# min(cv.lasso$cvm) #Mínimo error cuadrático medio de predicción
-# cv.lasso$lambda.min  # Alcanza el mínimo ECM
-# cv.lasso$lambda.1se  # Regla de un error estándar
-
-```
 
 ```{r}
-lambdas <- 10^seq(5,-3,length=100)
 set.seed(12345)
 cv.lasso <- cv.glmnet(x,y,alpha=1, family = "binomial")
 plot(cv.lasso)
@@ -449,23 +374,11 @@ coef(lasso_final)[coef(lasso_final)[,1] !=0,]
 En este caso, aunque el error estimado de predicción sea un poco mayor, hemos reducido a la mitad el número de variables en el modelo.
 
 
-
-### Graficos: Validacion del modelo
-
-El modelo lineal normal homocedástico basa sus resultados en diversas hipótesis que podrían no ser adecuadas para nuestros datos: linealidad, normalidad i homocedasticidad. Es conveniente contrastar estas hipótesis mediante el análisis de los residuos.
-
-
-```{r}
-par(mfrow = c(2,2))
-plot(ajuste_lasso)
-```
-
-
 ### Test de Hoslem
 
 ```{r}
-library(ResourceSelection)
-hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(ajuste_lasso), g = 8)
+# library(ResourceSelection)
+# hoslem.test(entrenamiento$Enfermedad_Cardiaca_Ataque, fitted(lasso_final), g = 8)
 ```
 
 
@@ -496,7 +409,7 @@ porcentaje_lasso <- round(100*tot,2)
 
 ```{r}
 library(pROC)
-par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, prediccion_lasso)
+par.roc <- roc(test$Enfermedad_Cardiaca_Ataque, pred.lasso.lambda1st)
 
 
 #La dibujamos
