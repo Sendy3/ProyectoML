@@ -148,13 +148,13 @@ datos4 <- datos %>%
   arrange(factor(Edad))
 
 datos4 %>% 
-  ggplot(aes(x = Edad, y = n, fill = factor(Sexo))) +
+  ggplot(aes(x = Edad, y = n, fill = Sexo)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~ Fumador) +
   labs(x = "Edades", y = "Cantidad de enfermedades cardiacas") +
   scale_fill_manual(values = colores) +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = -35, hjust = 1))
+  theme(axis.text.x = element_text(angle = -35, hjust = 0))
 ```
 
 
@@ -167,9 +167,9 @@ datos %>%
   group_by(Sexo, Fumador, Colesterol_Alto, Diabetes) %>% 
   mutate(Sexo = ifelse(Sexo == 1, "Hombre", "Mujer")) %>%
   mutate(Fumador = ifelse(Fumador == 1, "Fumador", "No Fumador")) %>% 
-  mutate(Colesterol_Alto = ifelse(Fumador == 1, "Colesterol alto", "No coresterol alto")) %>% 
-  
-  summarize(media_ataques = round(mean(Enfermedad_Cardiaca_Ataque),2)) %>% DT::datatable(extensions = 'Buttons', 
+  mutate(Colesterol_Alto = ifelse(Colesterol_Alto == 1, "Colesterol alto", "No coresterol alto")) %>% 
+  summarize(`Media Ataques` = round(mean(Enfermedad_Cardiaca_Ataque),2)) %>%
+  DT::datatable(extensions = 'Buttons', 
                options = list(dom = 'Blfrtip', 
                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
                               pageLength = 5, autoWidth = TRUE ))
@@ -238,7 +238,7 @@ porcentaje_normal <- round(100*tot,2)
 
 ## AJUSTE BUENO
 ```{r}
-#step(ajuste)
+step(ajuste)
 ```
 
 
